@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { UserPlus, Filter, ChevronDown, User, TrendingUp, Edit2 } from 'lucide-react';
+import  ModalRegistro from '../components/modalRegistro';
 
 // ==========================================
 // MOCK DATA: SIMULACIÓN DE DATOS CON CAMPOS DE FICHA
@@ -20,6 +21,7 @@ export const GestionJugadores = () => {
     const [filtroFinanciero, setFiltroFinanciero] = useState<string>('Todos');
     const [showCatDropdown, setShowCatDropdown] = useState<boolean>(false);
     const [showAdvDropdown, setShowAdvDropdown] = useState<boolean>(false);
+    const [modalAbierto, setModalAbierto] = useState<boolean>(false);
 
     const categoriasDisponibles = ['Querubines','Prebenjamin','Benjamin','Alevin','Infantil', 'Sub-15', 'Sub-16', 'Sub-18', 'Primer Equipo'];
     const opcionesFinancieras = ['Todos', 'Al Dia', 'Moroso'];
@@ -123,6 +125,7 @@ export const GestionJugadores = () => {
 
                                 {/* Registrar Jugador */}
                                 <button 
+                                    onClick={() => setModalAbierto(true)}
                                     className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-1.5 bg-[#403B3E] hover:bg-zinc-900 text-[#ffffff] text-sm font-black border border-[#ffffff] shadow-sm transition-all"
                                     style={{ clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%)' }}
                                 >
@@ -273,6 +276,10 @@ export const GestionJugadores = () => {
                 </div>
 
             </div>
+            <ModalRegistro 
+                abierto={modalAbierto} 
+                cerrarModal={() => setModalAbierto(false)} 
+            />
         </div>
     );
 };

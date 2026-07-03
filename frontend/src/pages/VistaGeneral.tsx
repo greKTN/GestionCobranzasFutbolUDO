@@ -7,8 +7,14 @@ import {
     AlertTriangle,
     ArrowUpRight
 } from 'lucide-react';
+import {useNavigate} from 'react-router-dom';
+import ModalPago from '../components/modalPago';
+import {useState} from 'react';
 
 export const VistaGeneral = () => {
+    //Manejo de navegacion y estado del modal de registro de pago
+    const navegar = useNavigate();
+    const [modalPagoAbierto, setModalPagoAbierto] = useState<boolean>(false);
     
     // ==========================================
     // COMPAS: AQUÍ VAMOS A CONECTAR EL BACKEND (PostgreSQL)
@@ -62,6 +68,7 @@ export const VistaGeneral = () => {
             <button 
                 className="flex items-center justify-between p-4 bg-[#d4cece] text-zinc-900 rounded-l shadow-md hover:bg-zinc-300 transition-all duration-200 group border border-zinc-300/30"
                 style={{ clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%)' }}
+                onClick={() => navegar('/jugadores')}
             >
             <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-zinc-800 text-white rounded-l">
@@ -77,6 +84,7 @@ export const VistaGeneral = () => {
 
             {/* Registrar Pago */}
             <button 
+                onClick={() => setModalPagoAbierto(true)}
                 className="flex items-center justify-between p-4 bg-[#d4cece] text-zinc-900 rounded-l shadow-md hover:bg-zinc-300 transition-all duration-200 group border border-zinc-300/30"
                 style={{ clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%)' }}
             >
@@ -96,6 +104,7 @@ export const VistaGeneral = () => {
             <button 
                 className="flex items-center justify-between p-4 bg-[#d4cece] text-zinc-900 rounded-l shadow-md hover:bg-zinc-300 transition-all duration-200 group border border-zinc-300/30"
                 style={{ clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%)' }}
+                onClick = {() => navegar('/reportes')}
             >
             <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-zinc-800 text-white rounded-l">
@@ -242,6 +251,12 @@ export const VistaGeneral = () => {
             </div>
 
         </div>
+        
+        <ModalPago 
+            abierto={modalPagoAbierto}
+            cerrarModal={() => setModalPagoAbierto(false)}
+        />
+
         </div>
     );
 };
