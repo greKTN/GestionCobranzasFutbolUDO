@@ -2,11 +2,9 @@ import { useState, useMemo, useEffect } from 'react';
 import { UserPlus, Filter, ChevronDown, User, TrendingUp, Edit2 } from 'lucide-react';
 import  ModalRegistro from '../components/modalRegistro';
 
-// ==========================================
-// MOCK DATA: SIMULACIÓN DE DATOS CON CAMPOS DE FICHA
-// ==========================================
+
 export const GestionJugadores = () => {
-    // 1. Estado para almacenar los jugadores de la BDD
+    //Estado para almacenar los jugadores de la BDD
     const [jugadoresDB, setJugadoresDB] = useState<any[]>([]);
     const [cargando, setCargando] = useState(true);
     const [selectedPlayerId, setSelectedPlayerId] = useState<number | null>(null);
@@ -15,15 +13,15 @@ export const GestionJugadores = () => {
     const [showCatDropdown, setShowCatDropdown] = useState<boolean>(false);
     const [showAdvDropdown, setShowAdvDropdown] = useState<boolean>(false);
     const [modalAbierto, setModalAbierto] = useState<boolean>(false);
+    const [jugadorEditando, setJugadorEditando] = useState<any>(null);
 
     const categoriasDisponibles = ['Querubines','Prebenjamin','Benjamin','Alevin','Infantil', 'Sub-15', 'Sub-16', 'Sub-18', 'Primer Equipo'];
     const opcionesFinancieras = ['Todos', 'Al Dia', 'Moroso'];
 
-    // 2. Fetch al backend cuando el componente se monta
+    //Fetch al backend cuando el componente se monta
     useEffect(() => {
         const fetchJugadores = async () => {
             try {
-                // Ajusta el puerto si tu backend corre en otro distinto al 5000
                 const response = await fetch('http://localhost:5000/api/jugadores');
                 if (!response.ok) throw new Error('Error al conectar con el backend');
                 
@@ -148,7 +146,7 @@ export const GestionJugadores = () => {
                             </div>
                         </div>
 
-                        {/* TABLA DE JUGADORES (Con scroll horizontal seguro para pantallas pequeñas) */}
+                        {/* TABLA DE JUGADORES  */}
                         <div className="overflow-x-auto w-full">
                             <table className="w-full text-zinc-300 text-sm border-separate border-spacing-y-2 min-w-175 xl:min-w-0">
                                 <thead className="text-xs text-zinc-200 uppercase tracking-wider">
@@ -210,7 +208,7 @@ export const GestionJugadores = () => {
                     </div>
                 </div>
 
-                {/* COLUMNA DERECHA: FICHA TÉCNICA (Arreglado el desbordamiento interno) */}
+                {/* COLUMNA DERECHA: FICHA TÉCNICA */}
                 <div className={`transition-all duration-300 ease-in-out w-full ${selectedPlayerId && selectedPlayer ? 'xl:w-[42%] opacity-100 block' : 'h-0 xl:w-0 opacity-0 hidden overflow-hidden'} shrink-0`}>
                     {selectedPlayer && (
                         <div className="bg-[#28370540] border-2 border-[#B1ED25] p-5 shadow-[0_0_15px_rgba(177,237,37,0.1)] flex flex-col w-full text-zinc-100 rounded-sm box-border">
@@ -246,7 +244,7 @@ export const GestionJugadores = () => {
                             {/* Separador e Indicador de Sección */}
                             <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-3 px-1">Datos físicos y personales</p>
 
-                            {/* Cuadrícula de Datos (Cambiado a grid fluido para evitar que se pise el texto) */}
+                            {/* Cuadrícula de Datos */}
                             <div className="grid grid-cols-2 gap-3 mb-6">
                                 <div className="bg-[#1e1d1f]/40 p-2.5 sm:p-3 border-l-2 border-[#B1ED25] rounded-r-sm min-w-0">
                                     <p className="text-[10px] text-zinc-500 font-bold uppercase truncate">Nacimiento</p>
@@ -266,9 +264,10 @@ export const GestionJugadores = () => {
                                 </div>
                             </div>
 
-                            {/* Botones de Acción Inferiores (Ajustado padding y clipPath para que entren perfectos) */}
+                            {/* Botones de Acción Inferiores */}
                             <div className="grid grid-cols-2 gap-3 pt-4 border-t border-zinc-700/50 w-full overflow-hidden">
                                 <button 
+                                    onClick={() => { setJugadorEditando(selectedPlayer); setModalAbierto(true); }}
                                     className="flex items-center justify-center gap-1.5 py-2.5 border border-[#ffffff] text-white text-xs font-bold bg-[#403B3E] hover:bg-zinc-800 transition-colors w-full whitespace-nowrap px-1"
                                     style={{ clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%)' }}
                                 >
@@ -291,7 +290,9 @@ export const GestionJugadores = () => {
             </div>
             <ModalRegistro 
                 abierto={modalAbierto} 
-                cerrarModal={() => setModalAbierto(false)} 
+                cerrarModal={() => { setModalAbierto(false); setJugadorEditando(null); }} 
+                jugadorAEditar={jugadorEditando}
+                recargarJugadores={() => window.location.reload()}
             />
         </div>
     );
