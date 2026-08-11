@@ -11,10 +11,13 @@ const app = express();
 // Middlewares
 app.use(cors()); 
 app.use(express.json()); 
+require('dotenv').config();
 
 // Rutas de la API
 app.use('/api/jugadores', jugadorRoutes);
 app.use('/api/pagos', pagoRoutes);
+const dashboardRoutes = require('./routes/dashboardRoutes');
+app.use('/api/dashboard', dashboardRoutes);
 
 const PORT = process.env.PORT || 5000;
 

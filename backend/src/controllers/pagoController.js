@@ -2,7 +2,7 @@ const { pool } = require('../config/db');
 const { createClient } = require('@supabase/supabase-js');
 
 // Inicializamos el cliente de Supabase para poder usar el Storage (Buckets)
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+const supabase = createClient(process.env.VITE_SUPABASE_URL, process.env.VITE_SUPABASE_PUBLISHABLE_KEY);
 
 const registrarPago = async (req, res) => {
     try {
@@ -60,4 +60,67 @@ const registrarPago = async (req, res) => {
     }
 };
 
-module.exports = { registrarPago };
+const getReportesFinancieros = async (req, res) => {
+    try {
+        // 1. Distribución de Pagos (Agrupamos por método)
+        const distQuery = `
+            SELECT mp.nombre as metodo, COUNT(p.id) as cantidad
+            FROM pagos p
+            JOIN metodos_pago mp ON p.id_metodo_pago = mp.id
+            GROUP BY mp.nombre
+        `;
+        const distResult = await pool.query(distQuery);
+
+        // Convertimos a porcentajes
+        const totalPagos = distResult.rows.reduce((acc, row) => acc + parseInt(row.cantidad), 0);
+        const distribucion = distResult.rows.map(row => ({
+            metodo: row.metodo,
+            pct: totalPagos > 0 ? Math.round((parseInt(row.cantidad) / totalPagos) * 100) : 0
+        }));
+
+        // 2. Transacciones Recientes (Cruzamos tablas para traer el nombre del jugador)
+        const transQuery = `
+            SELECT 
+                p.id, 
+                TO_CHAR(p.fecha_pago, 'DD/MM/YYYY HH12:MI AM') as fecha,
+                p.monto, 
+                p.moneda, 
+                p.estado, 
+                p.referencia,
+                p.comprobante_url,
+                mp.nombre as metodo,
+                j.nombre as jugador
+            FROM pagos p
+            JOIN metodos_pago mp ON p.id_metodo_pago = mp.id
+            LEFT JOIN representantes r ON p.id_representante = r.id
+            LEFT JOIN jugadores j ON j.id_representante = r.id
+            ORDER BY p.fecha_pago DESC
+            LIMIT 100;
+        `;
+        const transResult = await pool.query(transQuery);
+
+        // 3. Flujo de Caja Básico (Agrupamos ingresos por mes)
+        const flujoQuery = `
+            SELECT 
+                TO_CHAR(fecha_pago, 'TMMonth') as mes,
+                SUM(CASE WHEN moneda = 'USD' THEN monto ELSE monto / COALESCE(tasa_cambio, 762) END) as brutos
+            FROM pagos
+            GROUP BY TO_CHAR(fecha_pago, 'TMMonth'), EXTRACT(MONTH FROM fecha_pago)
+            ORDER BY EXTRACT(MONTH FROM fecha_pago) DESC
+            LIMIT 6;
+        `;
+        const flujoResult = await pool.query(flujoQuery);
+
+        res.json({
+            distribucion,
+            transacciones: transResult.rows,
+            flujo: flujoResult.rows
+        });
+
+    } catch (error) {
+        console.error("Error obteniendo reportes:", error);
+        res.status(500).json({ error: "Error interno obteniendo analíticas" });
+    }
+};
+
+module.exports = { registrarPago, getReportesFinancieros };

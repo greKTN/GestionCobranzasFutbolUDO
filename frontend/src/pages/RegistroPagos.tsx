@@ -24,6 +24,7 @@ export const RegistroPagos = () => {
     const [archivoLocal, setArchivoLocal] = useState<File | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // NUEVOS ESTADOS PARA EL AUTOCOMPLETADO
     const [jugadoresDB, setJugadoresDB] = useState<any[]>([]);
     const [mostrarSugerencias, setMostrarSugerencias] = useState(false);
 
