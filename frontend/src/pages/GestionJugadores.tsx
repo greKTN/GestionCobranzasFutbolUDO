@@ -1,21 +1,14 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { UserPlus, Filter, ChevronDown, User, TrendingUp, Edit2 } from 'lucide-react';
 import  ModalRegistro from '../components/modalRegistro';
 
 // ==========================================
 // MOCK DATA: SIMULACIÓN DE DATOS CON CAMPOS DE FICHA
 // ==========================================
-const mockPlayerData = [
-    { id: 1, name: 'Mateo Silva', dorsal: 10, position: 'Delantero (DC)', avatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=128&q=80', categoria: 'Sub-15', beca: 'Beca Completa', representativeName: 'Carlos Silva', representativePhone: '+58 414-1234455', status: 'Al Dia', peso: '62 kg', altura: '1.71 m', nacimiento: '14/08/2011', pierna: 'Derecha' },
-    { id: 2, name: 'Diego Rojas', dorsal: 8, position: 'Mediocampista (MC)', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=128&q=80', categoria: 'Sub-15', beca: 'Sin Beca', representativeName: 'Ana Romero', representativePhone: '+58 412-9902245', status: 'Al Dia', peso: '58 kg', altura: '1.68 m', nacimiento: '22/02/2011', pierna: 'Izquierda' },
-    { id: 3, name: 'Santiago Perez', dorsal: 2, position: 'Defensa (DFC)', avatar: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&w=128&q=80', categoria: 'Sub-15', beca: 'Sin Beca', representativeName: 'Tomas Perez', representativePhone: '+58 416-1115677', status: 'Moroso', peso: '65 kg', altura: '1.75 m', nacimiento: '05/11/2011', pierna: 'Derecha' },
-    { id: 4, name: 'Dilan Prieto', dorsal: 1, position: 'Portero (PO)', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=128&q=80', categoria: 'Sub-15', beca: 'Beca Completa', representativeName: 'Luisana Mejias', representativePhone: '+58 414-8383276', status: 'Al Dia', peso: '70 kg', altura: '1.80 m', nacimiento: '19/01/2011', pierna: 'Derecha' },
-    { id: 5, name: 'Tobias Bustamante', dorsal: 5, position: 'Defensa (DFC)', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=128&q=80', categoria: 'Sub-15', beca: 'Beca Completa', representativeName: 'Gio Navarro', representativePhone: '+58 414-1226688', status: 'Al Dia', peso: '63 kg', altura: '1.72 m', nacimiento: '30/06/2011', pierna: 'Derecha' },
-    { id: 6, name: 'Jorge Prado', dorsal: 11, position: 'Delantero (DC)', avatar: 'https://images.unsplash.com/photo-1530268729831-4b0b9e170218?auto=format&fit=crop&w=128&q=80', categoria: 'Sub-15', beca: 'Sin Beca', representativeName: 'Yasmin Ribero', representativePhone: '+58 422-5588912', status: 'Moroso', peso: '60 kg', altura: '1.70 m', nacimiento: '11/09/2011', pierna: 'Izquierda' },
-    { id: 7, name: 'Andres Ramos', dorsal: 9, position: 'Delantero (DC)', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80', categoria: 'Primer Equipo', beca: 'Sin Beca', representativeName: 'M. Ramos', representativePhone: '+58 412-5556677', status: 'Moroso', peso: '76 kg', altura: '1.83 m', nacimiento: '03/04/2004', pierna: 'Derecha' },
-];
-
 export const GestionJugadores = () => {
+    // 1. Estado para almacenar los jugadores de la BDD
+    const [jugadoresDB, setJugadoresDB] = useState<any[]>([]);
+    const [cargando, setCargando] = useState(true);
     const [selectedPlayerId, setSelectedPlayerId] = useState<number | null>(null);
     const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<string>('Sub-15');
     const [filtroFinanciero, setFiltroFinanciero] = useState<string>('Todos');
@@ -26,17 +19,37 @@ export const GestionJugadores = () => {
     const categoriasDisponibles = ['Querubines','Prebenjamin','Benjamin','Alevin','Infantil', 'Sub-15', 'Sub-16', 'Sub-18', 'Primer Equipo'];
     const opcionesFinancieras = ['Todos', 'Al Dia', 'Moroso'];
 
+    // 2. Fetch al backend cuando el componente se monta
+    useEffect(() => {
+        const fetchJugadores = async () => {
+            try {
+                // Ajusta el puerto si tu backend corre en otro distinto al 5000
+                const response = await fetch('http://localhost:5000/api/jugadores');
+                if (!response.ok) throw new Error('Error al conectar con el backend');
+                
+                const data = await response.json();
+                setJugadoresDB(data);
+            } catch (error) {
+                console.error("Error trayendo datos:", error);
+            } finally {
+                setCargando(false);
+            }
+        };
+
+        fetchJugadores();
+    }, []);
+
     const filteredPlayers = useMemo(() => {
-        return mockPlayerData.filter(player => {
+        return jugadoresDB.filter(player => {
             const matchesCategoria = player.categoria === categoriaSeleccionada;
             const matchesFinanciero = filtroFinanciero === 'Todos' || player.status === filtroFinanciero;
             return matchesCategoria && matchesFinanciero;
         });
-    }, [categoriaSeleccionada, filtroFinanciero]);
+    }, [jugadoresDB, categoriaSeleccionada, filtroFinanciero]);
 
     const selectedPlayer = useMemo(() => {
-        return mockPlayerData.find(p => p.id === selectedPlayerId) || null;
-    }, [selectedPlayerId]);
+        return jugadoresDB.find(p => p.id === selectedPlayerId) || null;
+    }, [jugadoresDB, selectedPlayerId]);
 
     const handlePlayerClick = (id: number) => {
         setSelectedPlayerId(prev => prev === id ? null : id);
